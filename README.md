@@ -1,126 +1,90 @@
-# **Async Web Crawler**  
- **A Python-based asynchronous web crawler designed for LiteSpeed Cache and QUIC.cloud cache warming.**  
+Async Web Crawler for WordPress Cache Warming
+🚀 Overview
+This is an asynchronous Python web crawler designed to warm up the QUIC.cloud and LiteSpeed cache for WordPress websites. It ensures your website loads faster by preloading internal pages.
 
-## **Overview**  
-This asynchronous web crawler **warms up your WordPress website’s QUIC.cloud cache** by periodically visiting internal links. This ensures that your website loads quickly by keeping pages preloaded in cache.
+✅ Asynchronous & Fast – Uses asyncio and aiohttp for concurrent requests.
+✅ Automatic Cache Warming – Appends ?qc-cache-warm to blog post URLs.
+✅ Recursive Crawling – Extracts internal links and follows them up to a specified depth.
+✅ Sitemap Support – Fetches URLs from sitemap.xml first.
+✅ Desktop & Mobile Simulation – Uses different User-Agent strings to mimic real users.
+✅ Logging & Performance Tracking – Logs cache statuses, slow pages, and errors.
+✅ Runs via Cron Job – Instead of schedule, you should set a cron job to run every few hours.
 
-It is designed for LiteSpeed Cache and QUIC.cloud, but it can also be adapted for other caching solutions such as WP Rocket, Cloudflare, or FastCGI caching.
+🛠️ Installation & Setup
+1️⃣ Install Dependencies
+Run:
 
-## **Features**  
-
-✔️ **Asynchronous & Fast** – Uses `asyncio` and `aiohttp` for concurrent requests.  
-✔️ **Automatic Cache Warming** – Appends `?qc-cache-warm` to URLs to **pre-warm QUIC.cloud cache**.  
-✔️ **Recursive Crawling** – Extracts **internal links** and follows them up to a specified depth.  
-✔️ **Sitemap Support** – **Fetches URLs from `sitemap.xml`** first (if available), ensuring comprehensive crawling.  
-✔️ **Desktop & Mobile Simulation** – Uses different **User-Agent strings** to mimic real users.  
-✔️ **Logging & Performance Tracking** – Logs **cache statuses** and **response times** in `cache_performance.csv`.  
-✔️ **Scheduled Execution** – Runs automatically **every 3 hours** using `schedule`.  
-
----
-
-## **Installation**  
-
-### **1️. Install Dependencies**  
-Ensure Python is installed, then install required libraries:  
-
-pip install aiohttp beautifulsoup4 schedule
-
-markdown
+bash
 Copy
 Edit
-
-### **2️. Clone the Repository**  
-
-git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git cd YOUR_REPO_NAME
-
-markdown
+pip install aiohttp beautifulsoup4
+2️⃣ Clone the Repository
+bash
 Copy
 Edit
+git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
+cd YOUR_REPO_NAME
+3️⃣ Modify the Base URL
+Edit crawl.py and replace:
 
-### **3️. Modify the Base URL**  
-
-Replace `https://mindbodybalance.health` with your **own website URL** inside the script:  
-
-desktop_crawler = AsyncWebCrawler("https://yourwebsite.com", DESKTOP_USER_AGENT) mobile_crawler = AsyncWebCrawler("https://yourwebsite.com", MOBILE_USER_AGENT)
-
-markdown
+python
 Copy
 Edit
+desktop_crawler = AsyncWebCrawler("https://yourwebsite.com", DESKTOP_USER_AGENT)
+mobile_crawler = AsyncWebCrawler("https://yourwebsite.com", MOBILE_USER_AGENT)
+with your actual domain.
 
-### **4️. Run the Script**  
+4️⃣ Set Up a Cron Job
+Instead of manually running the script, add this line to your cron jobs:
 
-python crawler.py
-
-markdown
+bash
 Copy
 Edit
+0 */3 * * * /usr/bin/python3 /home/mindbody/crawl/crawl.py >> /home/mindbody/crawl/logs.txt 2>&1
+This runs the crawler every 3 hours.
 
-The script will **start crawling immediately** and then run **every 3 hours** in the background.
+📝 How It Works
+Step 1: Fetch URLs from Sitemap
+Extracts links from sitemap.xml.
 
----
+If a nested sitemap exists, it follows and fetches additional links.
 
-## **How It Works**  
+Step 2: Crawl Internal Links
+Extracts and follows internal links up to 5 levels deep.
 
-### **⚡ Step 1: Fetch URLs from `sitemap.xml`**  
-The crawler first **checks for `sitemap.xml`** and extracts all listed URLs.  
+Step 3: Cache Warming
+Requests blog posts (/2023/ and /2024/ URLs) with ?qc-cache-warm for QUIC.cloud.
 
-- If the sitemap contains **nested sitemaps**, it recursively fetches them.  
-- If no sitemap is found, it **falls back to link extraction** from the base URL.  
+Step 4: Logging & Debugging
+✅ Logs cache status and response times in cache_performance.csv.
 
-### **⚡ Step 2: Extract Internal Links (Fallback Mode)**  
-If no sitemap is available, the crawler:  
+✅ Logs slow pages in slow_pages.csv.
 
-- Visits the **base URL**.  
-- Extracts **internal links** using `BeautifulSoup`.  
-- Recursively follows them **up to a specified depth**.  
+✅ Logs errors in error_log.txt.
 
-### **⚡ Step 3: Cache Warming & Logging**  
+📂 Logs & Debugging
+To monitor logs, use:
 
-- Visits each page, checking **QUIC.cloud cache status (`X-QC-Cache` header)**.  
-- If a page is a **blog post (`/2023/` or `/2024/` in URL)**, it **forces cache warming**.  
-- Logs **response times** and cache status in `cache_performance.csv`.  
-
-### **⚡ Step 4: Automatic Recrawling**  
-
-- Revisits **each URL every 3 hours** to ensure pages remain cached.  
-
----
-
-## **Configuration**  
-
-You can customize the following parameters inside the **`AsyncWebCrawler`** class:
-
-| Parameter       | Description                         | Default  |
-|--------------- |------------------------------------|--------- |
-| `max_depth`    | Maximum depth for recursive crawl | `5`      |
-| `semaphore`    | Limits concurrent requests       | `10`     |
-| `recrawl_interval` | Time before rechecking a page | `3 hours` |
-
-Modify these values **inside the script** as needed.
-
----
-
-## **Logs & Debugging**  
-
-All logs are recorded in **`cache_performance.csv`**. To **monitor logs in real time**, run:
-
-tail -f cache_performance.csv
-
-yaml
+bash
 Copy
 Edit
+tail -f /home/mindbody/crawl/debug_log.txt
+To check slow pages:
 
-If you encounter errors, check the **console output** or logs for debugging.
+bash
+Copy
+Edit
+cat /home/mindbody/crawl/slow_pages.csv
+🛠️ Contributing
+If you want to improve this project:
 
----
+Fork the repository.
 
-## **License**  
-This project is licensed under the **GNU GPL v3**. See the [LICENSE](LICENSE) file for details.
+Make your changes.
 
----
+Submit a pull request!
 
-## **Contribution**  
-**Want to contribute?**  
-Fork the repository, make your changes, and **submit a pull request!**  
+📜 License
+This project is licensed under GNU GPL v3.
 
----
+This README reflects the new version of crawl.py with improved logging and cron support.
